@@ -41,8 +41,7 @@ See `getresults-receive` for sample usage with `settings` and a `History` model.
 Short Identifiers
 -----------------
 
-Creates a small identifier that is almost unique, for example, across 25 Edc devices in a community. We use these as sample requisition identifiers that are transcribed manually onto a tube from the Edc screen. Once the sample is received at the
-local lab it is allocated a laboratory-wide unique specimen identifier.
+Creates a small identifier that is almost unique, for example, across 25 Edc devices in a community. We use these as sample requisition identifiers that are transcribed manually onto a tube from the Edc screen in a household. Once the sample is received at the local lab it is allocated a laboratory-wide unique specimen identifier.
 
 For example:
  
