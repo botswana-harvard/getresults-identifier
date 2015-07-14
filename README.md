@@ -36,3 +36,36 @@ The identifier increments on the numeric sequence then the alpha:
 	'ABA0001'	
 
 See `getresults-receive` for sample usage with `settings` and a `History` model.
+
+	
+Short Identifiers
+
+Creates a small identifier that is almost unique, for example, across 25 Edc devices in a community. We use these as sample requisition identifiers that are transcribed manually onto a tube from the Edc screen. Once the sample is received at the
+local lab it is allocated a laboratory-wide unique specimen identifier.
+
+For example:
+ 
+	from .short_identifier import ShortIdentifier
+	
+	
+	class RequisitionIdentifier(ShortIdentifier):
+	    
+	    identifier_type = 'requisition_identifier'
+
+Or if you prefer not to use the `IdentifierHistory` model:
+
+	class RequisitionIdentifier(ShortIdentifier):
+	
+	    identifier_type = 'requisition_identifier'
+	    requisition_model = None
+	
+	    def is_duplicate(self, identifier):
+	        try:
+	            self.requisition_model.get(requisition_identifier=identifier)
+	            return True
+	        except self.requisition_model.DoesNotExist:
+	            pass
+	        return False
+
+		def update_history(self):
+			pass
