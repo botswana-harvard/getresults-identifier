@@ -53,6 +53,7 @@ For example:
 	    identifier_type = 'requisition_identifier'
 
 Or if you prefer not to use the `IdentifierHistory` model:
+
 	from my_app.models import Requisition
 
 	class RequisitionIdentifier(ShortIdentifier):
