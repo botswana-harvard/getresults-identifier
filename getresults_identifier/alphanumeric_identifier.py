@@ -1,8 +1,6 @@
 import re
 
-
-class IdentifierError(Exception):
-    pass
+from .exceptions import IdentifierError
 
 
 class AlphanumericIdentifier(object):
@@ -78,5 +76,3 @@ class AlphanumericIdentifier(object):
                 letters[index] = 'A'
         letters.reverse()
         return ''.join(letters)
-
-

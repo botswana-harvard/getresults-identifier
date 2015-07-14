@@ -18,10 +18,10 @@ setup(
     include_package_data=True,
     url='http://github/botswana-harvard/getresults-identifier',
     license='GPL license, see LICENSE',
-    description='getresults',
+    description='getresults identifier models and processes',
     long_description=README,
     zip_safe=False,
-    keywords='django lis lims result identifier',
+    keywords='django getresults lis lims identifier',
     install_requires=[
         'Django>=1.8',
         'unipath>=1.1',

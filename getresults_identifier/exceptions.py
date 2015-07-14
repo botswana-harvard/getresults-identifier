@@ -1,0 +1,4 @@
+
+
+class IdentifierError(Exception):
+    pass
