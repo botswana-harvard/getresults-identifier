@@ -53,11 +53,12 @@ For example:
 	    identifier_type = 'requisition_identifier'
 
 Or if you prefer not to use the `IdentifierHistory` model:
+	from my_app.models import Requisition
 
 	class RequisitionIdentifier(ShortIdentifier):
 	
 	    identifier_type = 'requisition_identifier'
-	    requisition_model = None
+	    requisition_model = Requisition
 	
 	    def is_duplicate(self, identifier):
 	        try:
