@@ -2,14 +2,18 @@ import random
 
 from getresults_identifier import IdentifierError
 
+from .base_identifier import BaseIdentifier
 from .models import IdentifierHistory
 
 
-class ShortIdentifier(object):
+class ShortIdentifier(BaseIdentifier):
 
     identifier_type = 'short_identifier'
+    history_model = IdentifierHistory
+    identifier_type = 'short'
 
     def __init__(self, options, template=None, length=None, allowed_chars=None):
+        super(ShortIdentifier, self).__init__()
         self.allowed_chars = allowed_chars or 'ABCDEFGHKMNPRTUVWXYZ2346789'
         self.length = length or 5
         self.template = '{prefix}{random_string}'
@@ -18,14 +22,16 @@ class ShortIdentifier(object):
         self.random_string = self.get_random_string(length=self.length)
         self.options.update({'random_string': self.random_string})
         self.identifier = self.next_on_duplicate(self.create())
-        self.update_history()
+
+    def next_identifier(self):
+        self.identifier = self.next_on_duplicate(self.create())
 
     def is_duplicate(self, identifier):
         """May override with your algorithm for determining duplicates."""
         try:
-            IdentifierHistory.objects.get(identifier=identifier)
+            self.history_model.objects.get(identifier=identifier)
             return True
-        except IdentifierHistory.DoesNotExist:
+        except self.history_model.DoesNotExist:
             pass
         return False
 
@@ -44,15 +50,9 @@ class ShortIdentifier(object):
                     'Unable prepare a unique requisition identifier, '
                     'all are taken. Increase the length of the random string')
             identifier = self.create()
+        self.update_history(identifier)
         return identifier
 
     def get_random_string(self, length):
         """ safe for people, no lowercase and no 0OL1J5S etc."""
         return ''.join([random.choice(self.allowed_chars) for _ in range(length)])
-
-    def update_history(self):
-        """Updates the history model."""
-        IdentifierHistory.objects.create(
-            identifier=self.identifier,
-            identifier_type=self.identifier_type
-        )

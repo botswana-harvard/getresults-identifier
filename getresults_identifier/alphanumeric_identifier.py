@@ -1,45 +1,29 @@
 import re
 
 from .exceptions import IdentifierError
+from .numeric_identifier import NumericIdentifier
 
 
-class AlphanumericIdentifier(object):
+class AlphanumericIdentifier(NumericIdentifier):
+
     alpha_pattern = r'^[A-Z]{3}$'
     numeric_pattern = r'^[0-9]{4}$'
-    SEED = ('AAA', '0000')
+    seed = ('AAA', '0000')
 
     def __init__(self, last_identifier):
-        self.last_identifier = last_identifier or ''.join(self.SEED)
-        try:
-            re.match('{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:]), self.last_identifier).group()
-        except AttributeError:
-            raise IdentifierError('Invalid identifier format. Got {}'.format(self.last_identifier))
-        self.identifier = self.last_identifier
-        self.increment()
+        self.identifier_pattern = '{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:])
+        super(AlphanumericIdentifier, self).__init__(last_identifier)
 
-    def __repr__(self):
-        return '{0.__name__}(\'{1}\')'.format(self.__class__, self.identifier)
-
-    def __str__(self):
-        return self.identifier
-
-    def increment(self):
-        self.last_identifier = self.identifier
-        self.identifier = '{}{}'.format(
-            self.increment_alpha_segment(self.last_identifier),
-            self.increment_numeric_segment(self.last_identifier)
+    def increment(self, identifier=None, update_history=None):
+        identifier = identifier or self.identifier
+        update_history = True if update_history is None else update_history
+        identifier = '{}{}'.format(
+            self.increment_alpha_segment(identifier),
+            self.increment_numeric_segment(identifier)
         )
-
-    def increment_numeric_segment(self, identifier):
-        numeric = self.numeric_segment(identifier)
-        if int(numeric) < self.max_numeric(identifier):
-            incr = int(numeric) + 1
-        elif int(numeric) == self.max_numeric(identifier):
-            incr = 1
-        else:
-            raise IdentifierError('Unexpected numeric sequence. Got {}'.format(identifier))
-        frmt = '{{0:0{}d}}'.format(len(numeric))
-        return frmt.format(incr)
+        if update_history:
+            self.update_history(identifier)
+        return identifier
 
     def increment_alpha_segment(self, identifier):
         alpha = self.alpha_segment(identifier)
@@ -47,23 +31,23 @@ class AlphanumericIdentifier(object):
         if int(numeric) < self.max_numeric(identifier):
             return alpha
         elif int(numeric) == self.max_numeric(identifier):
-            return self.next_alpha(alpha)
+            return self._increment_alpha(alpha)
         else:
             raise IdentifierError('Unexpected numeric sequence. Got {}'.format(identifier))
 
+    def increment_numeric_segment(self, identifier):
+        return NumericIdentifier.increment(
+            self, identifier=self.numeric_segment(identifier), pattern=self.numeric_pattern, update_history=False)
+
     def alpha_segment(self, identifier):
-        segment = identifier[0:len(self.SEED[0])]
+        segment = identifier[0:len(self.seed[0])]
         return re.match(self.alpha_pattern, segment).group()
 
     def numeric_segment(self, identifier):
-        segment = identifier[len(self.SEED[0]):len(self.SEED[0]) + len(self.SEED[1])]
+        segment = identifier[len(self.seed[0]):len(self.seed[0]) + len(self.seed[1])]
         return re.match(self.numeric_pattern, segment).group()
 
-    def max_numeric(self, identifier):
-        segment = self.numeric_segment(identifier)
-        return int('9' * len(segment))
-
-    def next_alpha(self, text):
+    def _increment_alpha(self, text):
         """Increments an alpha string."""
         letters = []
         letters[0:] = text.upper()

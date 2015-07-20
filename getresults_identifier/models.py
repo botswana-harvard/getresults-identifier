@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 
-class IdentifierHistory(models.Model):
+class BaseIdentifierHistory(models.Model):
 
     identifier = models.CharField(
         max_length=25,
@@ -14,6 +14,12 @@ class IdentifierHistory(models.Model):
 
     created_datetime = models.DateTimeField(
         default=timezone.now)
+
+    class Meta:
+        abstract = True
+
+
+class IdentifierHistory(BaseIdentifierHistory):
 
     class Meta:
         app_label = 'getresults_identifier'
