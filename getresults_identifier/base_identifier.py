@@ -18,9 +18,16 @@ class BaseIdentifier(object):
     def __str__(self):
         return self.identifier
 
-    def next_identifier(self):
+    def __next__(self):
+        self.next_identifier()
+        return self.identifier
+
+    def next(self):
+        return self.__next__()
+
+    def next_identifier(self, identifier=None):
         """Sets the identifier attr to the next identifier."""
-        self.identifier = self.increment()
+        self.identifier = self.increment(identifier=identifier)
 
     def increment(self, identifier=None, update_history=None, pattern=None):
         identifier = identifier or self.identifier
@@ -28,12 +35,13 @@ class BaseIdentifier(object):
         pattern = pattern or self.identifier_pattern
         return identifier
 
-    def validate_identifier_pattern(self, identifier, pattern=None):
+    def validate_identifier_pattern(self, identifier, pattern=None, error_msg=None):
         pattern = pattern or self.identifier_pattern
+        error_msg = error_msg or 'Invalid identifier format for pattern {}. Got {}'.format(pattern, identifier)
         try:
             re.match('{}'.format(pattern), identifier).group()
         except AttributeError:
-            raise IdentifierError('Invalid identifier format for pattern {}. Got {}'.format(pattern, identifier))
+            raise IdentifierError(error_msg)
         return identifier
 
     def update_history(self, identifier):

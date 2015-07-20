@@ -24,9 +24,25 @@ class DummyShortIdentifier(ShortIdentifier):
 class TestIdentifier(TestCase):
 
     def test_short_identifier(self):
-        short_identifier = ShortIdentifier(dict(prefix=22))
-        expected_identifier = '{}{}'.format('22', short_identifier.random_string)
+        short_identifier = ShortIdentifier(options=dict(prefix=22))
+        expected_identifier = '{}{}'.format('22', short_identifier.options.get('random_string'))
         self.assertEqual(short_identifier.identifier, expected_identifier)
+        self.assertIsInstance(
+            IdentifierHistory.objects.get(identifier=expected_identifier),
+            IdentifierHistory
+        )
+        self.assertIsInstance(
+            IdentifierHistory.objects.get(identifier=short_identifier.identifier),
+            IdentifierHistory
+        )
+        self.assertIsNotNone(short_identifier.identifier)
+
+    def test_short_identifier_with_last(self):
+        last_identifier = '22KVTB4'
+        short_identifier = ShortIdentifier(last_identifier=last_identifier)
+        expected_identifier = '{}{}'.format('22', short_identifier.options.get('random_string'))
+        self.assertEqual(short_identifier.identifier, expected_identifier)
+        self.assertNotEqual(short_identifier.identifier, last_identifier)
         self.assertIsInstance(
             IdentifierHistory.objects.get(identifier=expected_identifier),
             IdentifierHistory
@@ -43,7 +59,7 @@ class TestIdentifier(TestCase):
         while ntries <= max_tries:
             ntries += 1
             try:
-                DummyShortIdentifier(dict(prefix=22))
+                DummyShortIdentifier(options=dict(prefix=22))
             except TestIdentifierError as e:
                 print('Duplicate on {}th attempt. Got {}'.format(ntries, str(e)))
                 break

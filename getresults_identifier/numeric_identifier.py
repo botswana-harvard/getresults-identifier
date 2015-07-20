@@ -8,11 +8,11 @@ class NumericIdentifier(BaseIdentifier):
     delimeter = None
     seed = ('0000000000')
 
-    def __init__(self, last_identifier):
+    def __init__(self, last_identifier=None):
         super(NumericIdentifier, self).__init__()
         self.identifier = last_identifier or ''.join(self.seed)
         self.validate_identifier_pattern(self.identifier)
-        self.next_identifier()
+        self.next_identifier(self.identifier)
 
     def increment(self, identifier=None, pattern=None, update_history=None):
         """Returns the incremented identfier."""

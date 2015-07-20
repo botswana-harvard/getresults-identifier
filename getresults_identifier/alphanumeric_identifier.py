@@ -10,7 +10,7 @@ class AlphanumericIdentifier(NumericIdentifier):
     numeric_pattern = r'^[0-9]{4}$'
     seed = ('AAA', '0000')
 
-    def __init__(self, last_identifier):
+    def __init__(self, last_identifier=None):
         self.identifier_pattern = '{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:])
         super(AlphanumericIdentifier, self).__init__(last_identifier)
 
