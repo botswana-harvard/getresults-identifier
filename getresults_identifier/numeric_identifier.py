@@ -1,5 +1,3 @@
-import re
-
 from .base_identifier import BaseIdentifier
 from .exceptions import IdentifierError
 
@@ -16,10 +14,8 @@ class NumericIdentifier(BaseIdentifier):
         self.validate_identifier_pattern(self.identifier)
         self.next_identifier()
 
-    def next_identifier(self):
-        self.identifier = self.increment()
-
     def increment(self, identifier=None, pattern=None, update_history=None):
+        """Returns the incremented identfier."""
         identifier = identifier or self.identifier
         update_history = True if update_history is None else update_history
         pattern = pattern or self.identifier_pattern
@@ -40,22 +36,17 @@ class NumericIdentifier(BaseIdentifier):
             self.update_history(identifier)
         return identifier
 
-    def validate_identifier_pattern(self, identifier, pattern=None):
-        pattern = pattern or self.identifier_pattern
-        try:
-            re.match('{}'.format(pattern), identifier).group()
-        except AttributeError:
-            raise IdentifierError('Invalid identifier format for pattern {}. Got {}'.format(pattern, identifier))
-        return identifier
-
     def max_numeric(self, identifier):
+        """Returns max value for numeric segment."""
         return int('9' * len(identifier))
 
     def split_segments(self, identifier):
+        """Returns the segment with the delimeter removed."""
         self.segments = identifier.split(self.delimeter)
         return ''.join(self.segments)
 
     def join_segments(self, identifier):
+        """Returns the segment with the delimeter reinserted."""
         start = 0
         new_segments = []
         for segment in self.segments:

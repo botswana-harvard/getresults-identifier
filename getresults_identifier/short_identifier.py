@@ -8,36 +8,29 @@ from .models import IdentifierHistory
 
 class ShortIdentifier(BaseIdentifier):
 
-    identifier_type = 'short_identifier'
+    identifier_pattern = '\w+'
     history_model = IdentifierHistory
     identifier_type = 'short'
 
     def __init__(self, options, template=None, length=None, allowed_chars=None):
         super(ShortIdentifier, self).__init__()
-        self.allowed_chars = allowed_chars or 'ABCDEFGHKMNPRTUVWXYZ2346789'
         self.length = length or 5
-        self.template = '{prefix}{random_string}'
         self.duplicate_counter = 0
+        self.allowed_chars = allowed_chars or 'ABCDEFGHKMNPRTUVWXYZ2346789'
         self.options = options
+        self.template = template or '{prefix}{random_string}'
         self.random_string = self.get_random_string(length=self.length)
         self.options.update({'random_string': self.random_string})
-        self.identifier = self.next_on_duplicate(self.create())
+        self.next_identifier()
 
-    def next_identifier(self):
-        self.identifier = self.next_on_duplicate(self.create())
-
-    def is_duplicate(self, identifier):
-        """May override with your algorithm for determining duplicates."""
-        try:
-            self.history_model.objects.get(identifier=identifier)
-            return True
-        except self.history_model.DoesNotExist:
-            pass
-        return False
-
-    def create(self):
+    def increment(self, identifier=None, update_history=None, pattern=None):
         """Creates a new almost unique identifier."""
-        return self.template.format(**self.options)
+        identifier = identifier or self.template.format(**self.options)
+        update_history = update_history if update_history is None else update_history
+        pattern = pattern or self.identifier_pattern
+        identifier = self.next_on_duplicate(identifier)
+        self.validate_identifier_pattern(identifier, pattern)
+        return identifier
 
     def next_on_duplicate(self, identifier):
         """If a duplicate, create a new identifier."""
@@ -52,6 +45,15 @@ class ShortIdentifier(BaseIdentifier):
             identifier = self.create()
         self.update_history(identifier)
         return identifier
+
+    def is_duplicate(self, identifier):
+        """May override with your algorithm for determining duplicates."""
+        try:
+            self.history_model.objects.get(identifier=identifier)
+            return True
+        except self.history_model.DoesNotExist:
+            pass
+        return False
 
     def get_random_string(self, length):
         """ safe for people, no lowercase and no 0OL1J5S etc."""

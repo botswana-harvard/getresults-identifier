@@ -1,9 +1,9 @@
 from django.test.testcases import TestCase
 
+from .alphanumeric_identifier import NumericIdentifier
+from .exceptions import IdentifierError
 from .models import IdentifierHistory
 from .short_identifier import ShortIdentifier
-from getresults_identifier.alphanumeric_identifier import NumericIdentifier
-from getresults_identifier.exceptions import IdentifierError
 
 
 class TestIdentifierError(Exception):
@@ -13,6 +13,7 @@ class TestIdentifierError(Exception):
 class DummyShortIdentifier(ShortIdentifier):
 
     history = []
+    identifier_pattern = '\w+'
 
     def update_history(self, identifier):
         if identifier in self.history:
