@@ -10,12 +10,19 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
     alpha_pattern = r'^[A-Z]{3}$'
     numeric_pattern = r'^[0-9]{4}$'
     checkdigit_pattern = r'^[0-9]{1}$'
-    seed = ('AAA', '0000', '0')
+    seed = ('AAA', '0000')
 
     def __init__(self, last_identifier=None):
+        self.verify_seed()
         self.identifier_pattern = '{}{}{}'.format(
             self.alpha_pattern[:-1], self.numeric_pattern[1:-1], self.checkdigit_pattern[1:])
         super(AlphanumericIdentifier, self).__init__(last_identifier)
+
+    def verify_seed(self):
+        re.match(self.alpha_pattern, self.seed[0]).group()
+        re.match(self.numeric_pattern, self.seed[1]).group()
+        self.seed = list(self.seed)
+        self.seed[1] = '{}{}'.format(self.seed[1], self.calculate_checkdigit(''.join(self.seed)))
 
     def increment(self, identifier=None, update_history=None, pattern=None):
         """Returns the incremented identifier."""

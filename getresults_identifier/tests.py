@@ -113,10 +113,10 @@ class TestIdentifier(TestCase):
         self.assertEqual(numeric_identifier.identifier, '1000-0001-11')
         self.assertEqual(next(numeric_identifier), '1000-0002-12')
 
-    def test_alphnumeric(self):
+    def test_alphanumeric(self):
         AlphanumericIdentifier.alpha_pattern = r'^[A-Z]{3}$'
         AlphanumericIdentifier.numeric_pattern = r'^[0-9]{4}$'
-        AlphanumericIdentifier.seed = ('AAA', '00003')
+        AlphanumericIdentifier.seed = ('AAA', '0000')
         alpha_id = AlphanumericIdentifier(None)
         self.assertEqual(alpha_id.identifier, 'AAA00015')
         self.assertEqual(next(alpha_id), 'AAA00023')
@@ -128,6 +128,7 @@ class TestIdentifier(TestCase):
     def test_alphanumeric_last(self):
         AlphanumericIdentifier.alpha_pattern = r'^[A-Z]{3}$'
         AlphanumericIdentifier.numeric_pattern = r'^[0-9]{4}$'
-        AlphanumericIdentifier.seed = ('AAA', '00003')
-        alpha_id = AlphanumericIdentifier('AAA99997')
+        AlphanumericIdentifier.seed = ('AAA', '0000')
+        alpha_id = AlphanumericIdentifier('AAA99991')
         self.assertEqual(next(alpha_id), 'AAB00021')
+        self.assertEqual(next(alpha_id), 'AAB00039')

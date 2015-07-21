@@ -10,7 +10,7 @@ class LuhnMixin(object):
         return self.is_luhn_valid(identifier)
 
     def calculate_checkdigit(self, partial_identifier):
-        return self.calculate_luhn(partial_identifier)
+        return str(self.calculate_luhn(partial_identifier))
 
     def checkdigit(self, identifier):
         return identifier.split(self.partial_identifier(identifier))[1]
@@ -41,13 +41,16 @@ class LuhnOrdMixin(LuhnMixin):
     def digits_of(self, n):
         return [ord(d) for d in str(n)]
 
+    def is_valid_checkdigit(self, identifier):
+        return self.calculate_checkdigit(identifier[:-1]) == identifier[-1:]
+
 
 class ModulusMixin(object):
 
     modulus = 13
 
     def partial_identifier(self, identifier):
-        return identifier[:-2]
+        return identifier[:-self.length]
 
     def is_valid_checkdigit(self, identifier):
         try:
@@ -58,12 +61,8 @@ class ModulusMixin(object):
 
     def calculate_checkdigit(self, partial_identifier):
         checkdigit = int(partial_identifier) % self.modulus
-        if self.modulus <= 10:
-            return str(checkdigit)
-        elif self.modulus > 10 and self.modulus <= 100:
-            return '{0:02d}'.format(checkdigit)
-        else:
-            return '{0:03d}'.format(checkdigit)
+        frmt = '{{0:0{}d}}'.format(self.length)
+        return frmt.format(checkdigit)
 
     def checkdigit(self, identifier):
         checkdigit = identifier.split(self.partial_identifier(identifier))[1]
@@ -71,3 +70,7 @@ class ModulusMixin(object):
             raise CheckDigitError(
                 'Invalid checkdigit for modulus {}. Got {} from {}'.format(self.modulus, checkdigit, identifier))
         return checkdigit
+
+    @property
+    def length(self):
+        return len(str((self.modulus - 1) % self.modulus))
