@@ -13,6 +13,7 @@ class ShortIdentifier(BaseIdentifier):
     template = '{prefix}{random_string}'
     prefix_pattern = r'^[0-9]{2}'
     random_string_length = 5
+    length = 7  # prefix_pattern + random_string_length
     allowed_chars = 'ABCDEFGHKMNPRTUVWXYZ2346789'
     history_model = IdentifierHistory
 

@@ -81,6 +81,21 @@ Creates a small identifier that is almost unique, for example, across 25 Edc dev
 	'22ECY42'
 	>>> next(id)
 	'228AP77'
+
+Or without a prefix ...
+
+	from getresults_identifier import ShortIdentifier
+	
+	class ConfirmationCode(ShortIdentifier):
+	
+	    identifier_type = 'confirmation'
+	    prefix_pattern = ''
+
+	>>> code = ConfirmationCode()
+	>>> print(code)
+	CAT33
+	>>> next(code)
+	3FU7D
 	
 ... add more to the prefix, such as device code and community code.
 
