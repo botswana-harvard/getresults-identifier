@@ -19,6 +19,8 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
         super(AlphanumericIdentifier, self).__init__(last_identifier)
 
     def verify_seed(self):
+        """Verifies the class attribute "seed" matches the regular expressions
+        of alpha and numeric and adds a checkdigit to the numeric segment."""
         re.match(self.alpha_pattern, self.seed[0]).group()
         re.match(self.numeric_pattern, self.seed[1]).group()
         self.seed[1] = '{}{}'.format(self.seed[1], self.calculate_checkdigit(''.join(self.seed)))
