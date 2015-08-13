@@ -23,12 +23,12 @@ class DummyShortIdentifier(ShortIdentifier):
         self.history.append(self.identifier)
 
 
-class DummyIdentifierWithCheckDigit(LuhnMixin, ShortIdentifier):
+class DummyIdentifierWithCheckDigit(ShortIdentifier):
 
     identifier_pattern = '\d+'
 
 
-class DummyAlphaIdentifierWithCheckDigit(LuhnOrdMixin, ShortIdentifier):
+class DummyAlphaIdentifierWithCheckDigit(ShortIdentifier):
 
     identifier_pattern = '\w+'
 
@@ -54,6 +54,7 @@ class TestIdentifier(TestCase):
     def test_short_identifier_with_last(self):
         last_identifier = '22KVTB4'
         ShortIdentifier.prefix_pattern = '^[0-9]{2}$'
+        ShortIdentifier.checkdigit_pattern = None
         short_identifier = ShortIdentifier(last_identifier=last_identifier)
         expected_identifier = '{}{}'.format('22', short_identifier.options.get('random_string'))
         self.assertEqual(short_identifier.identifier, expected_identifier)
@@ -77,7 +78,7 @@ class TestIdentifier(TestCase):
             try:
                 DummyShortIdentifier()
             except TestIdentifierError as e:
-                print('Duplicate on {}th attempt. Got {}'.format(ntries, str(e)))
+                print('Note, duplicate on {}th attempt. Got {}'.format(ntries, str(e)))
                 break
         if ntries >= max_tries:
             print('No duplicate after {} tries'.format(ntries))

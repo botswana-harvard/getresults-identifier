@@ -96,7 +96,7 @@ Creates a small identifier that is almost unique, for example, across 25 Edc dev
     >>> ShortIdentifier()
     ShortIdentifier('46ZZ2')
 
-Add a static prefix:
+Add a static prefix -- prefix(2) + identifier(5):
 
 	from getresults_identifier import ShortIdentifier
 	
@@ -110,7 +110,7 @@ Add a static prefix:
 	>>> next(id)
 	'22KM84G'
 
-Add a checkdigit
+Add a checkdigit -- prefix(2) + identifier(5) + checkdigit(1):
 
 	from getresults_identifier import ShortIdentifier
 	
@@ -121,9 +121,11 @@ Add a checkdigit
     >>> options = {'prefix': 22}
     >>> id = MyIdentifier(options=options)
 	>>> id
-	MyIdentifier('22BG724')
+	MyIdentifier('223GF8A3')
+	>>> next(id)
+	'22DXVW23'
 
-Or without a prefix ...
+We use this in edc-quota to get a confirmation code:
 
 	from getresults_identifier import ShortIdentifier
 	
@@ -138,15 +140,14 @@ Or without a prefix ...
 	>>> next(code)
 	3FU7D
 	
-... add more to the prefix, such as device code and community code.
+Add more to the prefix, such as device code and community code.
 
-	from getresults_identifier.short_identifier import ShortIdentifier
-	
+	from getresults_identifier.short_identifier import ShortIdentifier	
 	
 	class RequisitionIdentifier(ShortIdentifier):
 	    
 		identifier_type = 'requisition'
-		prefix_pattern = r'^[0-9]{4}'
+		prefix_pattern = r'^[0-9]{4}$'
 		template = '{device_id}{community_id}{random_string}'
 
 		@property
@@ -158,10 +159,10 @@ Or without a prefix ...
 
     >>> options = {'device_id': 22, 'community_id': '12'}
     >>> id = RequisitionIdentifier(options=options)
-	>>> print(id)
-	'2212X9V92'
+	>>> id
+	RequisitionIdentifier('22126MZXD')
 	>>> next(id)
-	'2212PC7E7'
+	'2212Y899C'
 
 ... if you prefer not to use the `IdentifierHistory` model, for example, if you are filling in a model field on save():
 

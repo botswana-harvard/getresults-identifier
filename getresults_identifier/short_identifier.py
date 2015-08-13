@@ -5,9 +5,10 @@ from getresults_identifier import IdentifierError
 
 from .base_identifier import BaseIdentifier
 from .models import IdentifierHistory
+from getresults_identifier.checkdigit_mixins import LuhnOrdMixin
 
 
-class ShortIdentifier(BaseIdentifier):
+class ShortIdentifier(LuhnOrdMixin, BaseIdentifier):
 
     identifier_type = 'short'
     template = '{prefix}{random_string}'
@@ -39,11 +40,21 @@ class ShortIdentifier(BaseIdentifier):
         """Sets the identifier attr to the next identifier.
 
         Removes the checkdigit if it has one."""
+        identifier_pattern = self.identifier_pattern
+        if self.checkdigit_pattern:
+            identifier_pattern = self.identifier_pattern[:-1] + self.checkdigit_pattern[1:]
+        if self.identifier:
+            if re.match(identifier_pattern, self.identifier):
+                self.identifier = self.remove_checkdigit(self.identifier)
         identifier = self.remove_separator(self.identifier)
         identifier = self.increment(identifier)
-        identifier = self.insert_separator(identifier)
+        if self.checkdigit_pattern:
+            checkdigit = self.calculate_checkdigit(identifier)
+        else:
+            checkdigit = None
+        identifier = self.insert_separator(identifier, checkdigit)
         self.identifier = self.validate_identifier_pattern(
-            identifier, pattern=self.identifier_pattern)
+            identifier, pattern=identifier_pattern)
         self.update_history()
 
     def increment(self, identifier):
