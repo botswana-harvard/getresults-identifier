@@ -8,9 +8,11 @@ class BaseIdentifier(object):
 
     history_model = IdentifierHistory
     identifier_pattern = None
+    separator = None
 
     def __init__(self):
         self.identifier = None
+        self.identifier_as_list = []
 
     def __repr__(self):
         return '{0.__name__}(\'{1}\')'.format(self.__class__, self.identifier)
@@ -25,31 +27,54 @@ class BaseIdentifier(object):
     def next(self):
         return self.__next__()
 
-    def next_identifier(self, identifier=None):
+    def next_identifier(self):
         """Sets the identifier attr to the next identifier."""
-        self.identifier = self.increment(identifier=identifier)
+        self.identifier = self.increment()
 
-    def increment(self, identifier=None, update_history=None, pattern=None):
-        identifier = identifier or self.identifier
-        update_history = True if update_history is None else update_history
-        pattern = pattern or self.identifier_pattern
-        return identifier
+    def increment(self):
+        raise NotImplementedError()
 
     def validate_identifier_pattern(self, identifier, pattern=None, error_msg=None):
         pattern = pattern or self.identifier_pattern
-        error_msg = error_msg or 'Invalid identifier format for pattern {}. Got {}'.format(pattern, identifier)
+        error_msg = error_msg or 'Invalid identifier format for pattern {}. Got {}'.format(
+            pattern, identifier)
         try:
-            re.match('{}'.format(pattern), identifier).group()
+            identifier = re.match(pattern, identifier).group()
         except AttributeError:
             raise IdentifierError(error_msg)
         return identifier
 
-    def update_history(self, identifier):
+    def update_history(self):
         """Updates the history model."""
-        try:
-            self.history_model.objects.create(
-                identifier=identifier,
-                identifier_type=self.identifier_type
-            )
-        except AttributeError:
-            pass
+        if self.history_model:
+            try:
+                self.history_model.objects.create(
+                    identifier=self.identifier,
+                    identifier_type=self.identifier_type
+                )
+            except AttributeError:
+                pass
+
+    def remove_separator(self, identifier):
+        """Returns the identifier after removing the separator and saves the
+        items of the identifier as a list."""
+        if not identifier:
+            return identifier
+        else:
+            self.identifier_as_list = identifier.split(self.separator)
+            return ''.join(self.identifier_as_list)
+
+    def insert_separator(self, identifier, checkdigit=None):
+        """Returns the identifier with the separator reinserted using the
+        list of identifier "items" from split_on_separator()."""
+        if not self.identifier_as_list:
+            self.identifier_as_list = [identifier]
+        start = 0
+        items = []
+        for item in self.identifier_as_list:
+            items.append(identifier[start:start + len(item)])
+            start += len(item)
+        if checkdigit:
+            items.append(checkdigit)
+        identifier = (self.separator or '').join(items)
+        return identifier

@@ -3,19 +3,18 @@ import re
 from .exceptions import IdentifierError
 from .checkdigit_mixins import LuhnOrdMixin
 from .numeric_identifier import NumericIdentifier
+from getresults_identifier.exceptions import CheckDigitError
 
 
 class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
 
     alpha_pattern = r'^[A-Z]{3}$'
     numeric_pattern = r'^[0-9]{4}$'
-    checkdigit_pattern = r'^[0-9]{1}$'
     seed = ['AAA', '0000']
 
     def __init__(self, last_identifier=None):
         self.verify_seed()
-        self.identifier_pattern = '{}{}{}'.format(
-            self.alpha_pattern[:-1], self.numeric_pattern[1:-1], self.checkdigit_pattern[1:])
+        self.identifier_pattern = '{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:])
         super(AlphanumericIdentifier, self).__init__(last_identifier)
 
     def verify_seed(self):
@@ -23,13 +22,10 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
         of alpha and numeric and adds a checkdigit to the numeric segment."""
         re.match(self.alpha_pattern, self.seed[0]).group()
         re.match(self.numeric_pattern, self.seed[1]).group()
-        self.seed[1] = '{}{}'.format(self.seed[1], self.calculate_checkdigit(''.join(self.seed)))
 
-    def increment(self, identifier=None, update_history=None, pattern=None):
+    def increment(self):
         """Returns the incremented identifier."""
-        identifier = identifier or self.identifier
-        update_history = True if update_history is None else update_history
-        pattern = pattern or self.identifier_pattern
+        identifier = self.identifier
         identifier = '{}{}'.format(
             self.increment_alpha_segment(identifier),
             self.increment_numeric_segment(identifier)[:-1]

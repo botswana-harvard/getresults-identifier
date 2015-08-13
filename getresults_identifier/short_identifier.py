@@ -12,6 +12,7 @@ class ShortIdentifier(BaseIdentifier):
     identifier_type = 'short'
     template = '{prefix}{random_string}'
     prefix_pattern = r'^[0-9]{2}'
+    checkdigit_pattern = r'^[0-9]{1}$'
     random_string_length = 5
     length = 7  # prefix_pattern + random_string_length
     allowed_chars = 'ABCDEFGHKMNPRTUVWXYZ2346789'
@@ -23,8 +24,9 @@ class ShortIdentifier(BaseIdentifier):
         self.identifier_pattern = self.prefix_pattern + self.random_string_pattern[1:]
         self._options = options or {}
         self.duplicate_counter = 0
-        self.last_identifier = last_identifier or None  # only used to update options
-        self.next_identifier(self.identifier)
+        self.last_identifier = last_identifier or None
+        self.identifier = last_identifier or None  # only used to update options
+        self.next_identifier()
 
     @property
     def options(self):
@@ -35,19 +37,20 @@ class ShortIdentifier(BaseIdentifier):
                 self._options.update({'prefix': ''})
         return self._options
 
-    def increment(self, identifier=None, update_history=None, pattern=None):
+    def next_identifier(self):
+        """Sets the identifier attr to the next identifier.
+
+        Removes the checkdigit if it has one."""
+        identifier = self.remove_separator(self.identifier)
+        identifier = self.increment(identifier)
+        identifier = self.insert_separator(identifier)
+        self.identifier = self.validate_identifier_pattern(
+            identifier, pattern=self.identifier_pattern)
+        self.update_history()
+
+    def increment(self, identifier):
         """Creates a new almost unique identifier."""
-        identifier = self.next_on_duplicate(identifier)
-        update_history = update_history if update_history is None else update_history
-        pattern = pattern or self.identifier_pattern
-        self.validate_identifier_pattern(
-            identifier=identifier,
-            pattern=self.prefix_pattern,
-            error_msg=('Invalid identifier prefix format for pattern {}. Got {}'
-                       ).format(self.prefix_pattern, self.identifier))
-        self.validate_identifier_pattern(identifier, pattern)
-        self.update_history(identifier)
-        return identifier
+        return self.next_on_duplicate(identifier)
 
     def next_on_duplicate(self, identifier):
         """If a duplicate, create a new identifier."""
