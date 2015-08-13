@@ -11,17 +11,15 @@ class ShortIdentifier(BaseIdentifier):
 
     identifier_type = 'short'
     template = '{prefix}{random_string}'
-    prefix_pattern = r'^[0-9]{2}'
-    checkdigit_pattern = r'^[0-9]{1}$'
-    random_string_length = 5
-    length = 7  # prefix_pattern + random_string_length
+    prefix_pattern = None
+    checkdigit_pattern = None
+    random_string_pattern = r'^[A-Z0-9]{5}$'
     allowed_chars = 'ABCDEFGHKMNPRTUVWXYZ2346789'
     history_model = IdentifierHistory
 
     def __init__(self, last_identifier=None, options=None):
         super(ShortIdentifier, self).__init__()
-        self.random_string_pattern = r'^[A-Z0-9]{}$'.format('{' + str(self.random_string_length) + '}')
-        self.identifier_pattern = self.prefix_pattern + self.random_string_pattern[1:]
+        self.identifier_pattern = (self.prefix_pattern or '^$')[:-1] + self.random_string_pattern[1:]
         self._options = options or {}
         self.duplicate_counter = 0
         self.last_identifier = last_identifier or None
@@ -32,7 +30,7 @@ class ShortIdentifier(BaseIdentifier):
     def options(self):
         if 'prefix' not in self._options:
             try:
-                self._options.update({'prefix': re.match(self.prefix_pattern, self.last_identifier).group()})
+                self._options.update({'prefix': re.match(self.prefix_pattern[:-1], self.last_identifier).group()})
             except TypeError:
                 self._options.update({'prefix': ''})
         return self._options
@@ -54,13 +52,15 @@ class ShortIdentifier(BaseIdentifier):
 
     def next_on_duplicate(self, identifier):
         """If a duplicate, create a new identifier."""
+        length = len(re.match(self.random_string_pattern[:-1], 'A' * 100).group())
+        prefix_length = len(re.match(self.random_string_pattern[:-1], 'A' * 100).group())
         while True:
-            self.options.update({'random_string': self.get_random_string(length=self.random_string_length)})
+            self.options.update({'random_string': self.get_random_string(length=length)})
             identifier = self.template.format(**self.options)
             if not self.is_duplicate(identifier):
                 break
             self.duplicate_counter += 1
-            if self.duplicate_counter == len(self.allowed_chars) ** self.length:
+            if self.duplicate_counter == len(self.allowed_chars) ** length + prefix_length:
                 raise IdentifierError(
                     'Unable prepare a unique requisition identifier, '
                     'all are taken. Increase the length of the random string')

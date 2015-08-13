@@ -91,14 +91,37 @@ Short Identifiers
 
 Creates a small identifier that is almost unique, for example, across 25 Edc devices in a community. We use these as sample requisition identifiers that are transcribed manually onto a tube from the Edc screen in a household. Once the sample is received at the local lab it is allocated a laboratory-wide unique specimen identifier.
 
-    from .short_identifier import ShortIdentifier
+    from getresults_identifier import ShortIdentifier
     
+    >>> ShortIdentifier()
+    ShortIdentifier('46ZZ2')
+
+Add a static prefix:
+
+	from getresults_identifier import ShortIdentifier
+	
+	class MyIdentifier(ShortIdentifier):
+    	prefix_pattern = r'^[0-9]{2}$'
+ 	
     >>> options = {'prefix': 22}
-    >>> id = ShortIdentifier(options=options)
-	>>> print(id)
-	'22ECY42'
+    >>> id = MyIdentifier(options=options)
+	>>> id
+	MyIdentifier('22UYMBT')
 	>>> next(id)
-	'228AP77'
+	'22KM84G'
+
+Add a checkdigit
+
+	from getresults_identifier import ShortIdentifier
+	
+	class MyIdentifier(ShortIdentifier):
+    	prefix_pattern = r'^[0-9]{2}$'
+    	checkdigit_pattern = r'^[0-9]{1}$'
+
+    >>> options = {'prefix': 22}
+    >>> id = MyIdentifier(options=options)
+	>>> id
+	MyIdentifier('22BG724')
 
 Or without a prefix ...
 

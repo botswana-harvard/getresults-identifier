@@ -1,12 +1,11 @@
 from django.test.testcases import TestCase
 
 from .alphanumeric_identifier import AlphanumericIdentifier
-from .exceptions import IdentifierError
+from .checkdigit_mixins import LuhnMixin, LuhnOrdMixin, BaseCheckDigitMixin
+from .exceptions import IdentifierError, CheckDigitError
 from .models import IdentifierHistory
 from .numeric_identifier import NumericIdentifier, NumericIdentifierWithModulus
 from .short_identifier import ShortIdentifier
-from getresults_identifier.checkdigit_mixins import LuhnMixin, LuhnOrdMixin, BaseCheckDigitMixin
-from getresults_identifier.exceptions import CheckDigitError
 
 
 class TestIdentifierError(Exception):
@@ -37,6 +36,7 @@ class DummyAlphaIdentifierWithCheckDigit(LuhnOrdMixin, ShortIdentifier):
 class TestIdentifier(TestCase):
 
     def test_short_identifier(self):
+        ShortIdentifier.prefix_pattern = '^[0-9]{2}$'
         short_identifier = ShortIdentifier(options=dict(prefix=22))
         expected_identifier = '{}{}'.format('22', short_identifier.options.get('random_string'))
         self.assertEqual(short_identifier.identifier, expected_identifier)
@@ -49,9 +49,11 @@ class TestIdentifier(TestCase):
             IdentifierHistory
         )
         self.assertIsNotNone(short_identifier.identifier)
+        ShortIdentifier.prefix_pattern = None
 
     def test_short_identifier_with_last(self):
         last_identifier = '22KVTB4'
+        ShortIdentifier.prefix_pattern = '^[0-9]{2}$'
         short_identifier = ShortIdentifier(last_identifier=last_identifier)
         expected_identifier = '{}{}'.format('22', short_identifier.options.get('random_string'))
         self.assertEqual(short_identifier.identifier, expected_identifier)
@@ -65,6 +67,7 @@ class TestIdentifier(TestCase):
             IdentifierHistory
         )
         self.assertIsNotNone(short_identifier.identifier)
+        ShortIdentifier.prefix_pattern = None
 
     def test_short_identifier_duplicate(self):
         ntries = 0
@@ -72,7 +75,7 @@ class TestIdentifier(TestCase):
         while ntries <= max_tries:
             ntries += 1
             try:
-                DummyShortIdentifier(options=dict(prefix=22))
+                DummyShortIdentifier()
             except TestIdentifierError as e:
                 print('Duplicate on {}th attempt. Got {}'.format(ntries, str(e)))
                 break
@@ -236,4 +239,5 @@ class TestIdentifier(TestCase):
             if n >= 9998:
                 self.assertEqual('AAB', identifier[0:3])
             else:
-                self.assertEqual('AAA', identifier[0:3], 'Expected AAA for {}nth iteration. Got {}'.format(n, identifier))
+                self.assertEqual('AAA', identifier[0:3],
+                                 'Expected AAA for {}nth iteration. Got {}'.format(n, identifier))
