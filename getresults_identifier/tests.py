@@ -224,3 +224,16 @@ class TestIdentifier(TestCase):
         self.assertEqual(next(alpha_id), 'AAB00039')
         self.assertEqual(next(alpha_id), 'AAB00047')
         self.assertEqual(next(alpha_id), 'AAB00055')
+
+    def test_increment_for_alphanumeric(self):
+        AlphanumericIdentifier.alpha_pattern = r'^[A-Z]{3}$'
+        AlphanumericIdentifier.numeric_pattern = r'^[0-9]{4}$'
+        AlphanumericIdentifier.seed = ['AAA', '0000']
+        instance = AlphanumericIdentifier(None)
+        self.assertEquals(instance.identifier, 'AAA00015')
+        for n in range(10000):
+            identifier = next(instance)
+            if n >= 9998:
+                self.assertEqual('AAB', identifier[0:3])
+            else:
+                self.assertEqual('AAA', identifier[0:3], 'Expected AAA for {}nth iteration. Got {}'.format(n, identifier))

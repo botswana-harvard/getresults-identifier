@@ -59,7 +59,7 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
     def increment_alpha_segment(self, identifier):
         """Increments the alpha segment of the identfier."""
         alpha = self.alpha_segment(identifier)
-        numeric = self.numeric_segment(identifier)[:-1]
+        numeric = self.numeric_segment(identifier)
         if int(numeric) < self.max_numeric(numeric):
             return alpha
         elif int(numeric) == self.max_numeric(numeric):

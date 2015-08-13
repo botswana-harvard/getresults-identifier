@@ -5,66 +5,84 @@ Base classes for identifiers.
 Numeric Identifiers
 -------------------
 
+The numeric identifier uses a check-digit and may have a separator if specified.
+
 	from getresults_identifier import NumericIdentifier
 
 	class MyIdentifier(NumericIdentifier):
 		pass
 		
 	>>> id = MyIdentifier(None)
+	>>> id
+	MyIdentifier('00000000018')
 	>>> next(id)
-	'0000000001'
+	'00000000026'
 	>>> next(id)
-	'0000000002'
+	'00000000034'
 
-	# add a delimiter
+
+	# add a separator
 	class MyIdentifier(NumericIdentifier):
     	identifier_pattern = r'^[0-9]{4}\-[0-9]{4}\-[0-9]{4}$'
-    	delimeter = '-'
-    	seed = ('3200-0000-0000')
+    	checkdigit_pattern = r'^\-[0-9]{1}$'
+    	separator = '-'
+    	seed = ['3200-0000-0000']
 
 	>>> id = MyIdentifier(None)
+	>>> id
+	MyIdentifier('3200-0000-0001-1')
 	>>> next(id)
-	'3200-0000-0001'
+	'3200-0000-0002-9'
 	>>> next(id)
-	'3200-0000-0002'
+	'3200-0000-0003-7'
 
-	# start from the last identifier
-	>>> id = MyIdentifier('3200-0000-3227')
-	>>> next(id)
-	'3200-0000-3228'
+	# start from the last identifier, increment is immediate and automatic
+	>>> id = MyIdentifier('3200-0000-3222-0')
+	>>> id
+	MyIdentifier('3200-0000-3223-8')
 	
 
 Alphanumeric Identifiers
 ------------------------
 
-	from getresults_identifier import AlpanumericIdentifier
+	from getresults_identifier import AlphanumericIdentifier
 
-	class MyIdentifier(AlpanumericIdentifier):
-	    alpha_pattern = r'^[A-Z]{3}$'
-    	numeric_pattern = r'^[0-9]{4}$'
-    	seed = ('AAA', '0000')
+	class MyIdentifier(AlphanumericIdentifier):
+		alpha_pattern = r'^[A-Z]{3}$'
+		numeric_pattern = r'^[0-9]{4}$'
+		seed = ['AAA', '0000']
 		
-With the above your identifier will start with 'AAA0001'. For example:
+	>>> id = MyIdentifier(None)
+	>>> id
+	MyIdentifier('AAA00015')
 
-	>>> from getresults_receive.receive_identifier import ReceiveIdentifier
-	>>> new_id = MyIdentifier(None)
-	>>> print(new_id)
-	'AAA0001'
+Your identifier will starts with 'AAA0001' plus the checkdigit "5". Subsequent calls to next increment like this:
+
+	>>> print(next(id))
+	AAA00023
+	>>> print(next(id))
+	AAA00031
+	>>> print(next(id))
+	AAA00049
+
 
 The identifier increments on the numeric sequence then the alpha:
 
-	>>> id = MyIdentifier('AAZ9998)
-	>>> next(id)
-	'AAA9999'	
+	>>> id = MyIdentifier('AAA99991)
+	>>> id
+	MyIdentifier('AAB00013')	
 
 	>>> next(id)
-	'AAB9999'	
+	'AAB00021'	
+	>>> next(id)
+	'AAB00039'	
+	>>> next(id)
+	'AAB00047'	
 
-	>>> id = MyIdentifier('AAZ9998)
-	>>> next(id)
-	'AAZ9999'	
-	>>> next(id)
-	'ABA0001'	
+	>>> id = MyIdentifier('AAB99999')
+	>>> id
+	MyIdentifier('AAC00010')
+	...	
 
 See `getresults-receive` for sample usage with `settings` and a `History` model.
 
