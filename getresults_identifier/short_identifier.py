@@ -61,19 +61,26 @@ class ShortIdentifier(LuhnOrdMixin, IdentifierWithCheckdigit):
 
     def next_on_duplicate(self, identifier):
         """If a duplicate, create a new identifier."""
-        length = len(re.match(self.random_string_pattern[:-1], 'A' * 100).group())
-        prefix_length = len(re.match(self.random_string_pattern[:-1], 'A' * 100).group())
         while True:
-            self.options.update({'random_string': self.get_random_string(length=length)})
+            self.options.update({'random_string': self.get_random_string(length=self.random_string_length)})
             identifier = self.template.format(**self.options)
             if not self.is_duplicate(identifier):
                 break
             self.duplicate_counter += 1
-            if self.duplicate_counter == len(self.allowed_chars) ** (length + prefix_length):
+            if self.duplicate_counter >= self.duplicate_tries:
                 raise IdentifierError(
                     'Unable prepare a unique requisition identifier, '
                     'all are taken. Increase the length of the random string')
         return identifier
+
+    @property
+    def duplicate_tries(self):
+        return len(self.allowed_chars) ** (self.random_string_length)
+
+    @property
+    def random_string_length(self):
+        sample_string = 'A' * 100
+        return len(re.match(self.random_string_pattern[:-1], sample_string).group())
 
     def is_duplicate(self, identifier):
         """May override with your algorithm for determining duplicates."""

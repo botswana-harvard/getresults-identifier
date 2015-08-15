@@ -14,27 +14,6 @@ class TestIdentifierError(Exception):
     pass
 
 
-class DummyShortIdentifier(ShortIdentifier):
-
-    history = []
-    identifier_pattern = '^\w+$'
-
-    def update_history(self):
-        if self.identifier in self.history:
-            raise TestIdentifierError('duplicate {}'.format(self.identifier))
-        self.history.append(self.identifier)
-
-
-class DummyIdentifierWithCheckDigit(ShortIdentifier):
-
-    identifier_pattern = '\d+'
-
-
-class DummyAlphaIdentifierWithCheckDigit(ShortIdentifier):
-
-    identifier_pattern = '\w+'
-
-
 class TestIdentifier(TestCase):
 
     def test_valid_checkdigit(self):
@@ -110,18 +89,24 @@ class TestIdentifier(TestCase):
         self.assertIsNotNone(short_identifier.identifier)
         ShortIdentifier.prefix_pattern = None
 
-    def test_short_identifier_duplicate(self):
+    def test_short_identifier_catches_duplicate_limit(self):
         ntries = 0
-        min_tries = 1000
-        max_tries = 10000
+        ShortIdentifier.identifier_pattern = '^\w+$'
+        ShortIdentifier.allowed_chars = 'AB'
+        instance = ShortIdentifier()
+        min_tries = instance.duplicate_tries
+        max_tries = min_tries + 10
+        assert_msg = None
         while ntries <= max_tries:
             ntries += 1
             try:
-                DummyShortIdentifier()
-            except TestIdentifierError as e:
-                assert_msg = 'duplicate on {}th attempt. Got {}'.format(ntries, str(e))
+                instance = ShortIdentifier()
+            except IdentifierError as e:
+                assert_msg = (
+                    'No available identifiers on {}th attempt. Limit is {}. Got {}'.format(
+                        ntries, min_tries, str(e)))
                 break
-        self.assertTrue(ntries < min_tries, assert_msg)
+        self.assertTrue(ntries <= min_tries, assert_msg)
 
     def test_numeric_basic(self):
         NumericIdentifier.identifier_pattern = r'^[0-9]{8}$'
