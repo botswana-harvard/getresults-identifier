@@ -69,7 +69,7 @@ class ShortIdentifier(LuhnOrdMixin, IdentifierWithCheckdigit):
             if not self.is_duplicate(identifier):
                 break
             self.duplicate_counter += 1
-            if self.duplicate_counter == len(self.allowed_chars) ** length + prefix_length:
+            if self.duplicate_counter == len(self.allowed_chars) ** (length + prefix_length):
                 raise IdentifierError(
                     'Unable prepare a unique requisition identifier, '
                     'all are taken. Increase the length of the random string')
