@@ -15,9 +15,7 @@ class IdentifierWithCheckdigit(Identifier, LuhnMixin):
         super().__init__(last_identifier)
 
     def next_identifier(self):
-        """Sets the identifier attr to the next identifier.
-
-        Removes the checkdigit if it has one."""
+        """Sets the next identifier and updates history."""
         if self.checkdigit_pattern:
             if re.match(self.identifier_pattern_with_checkdigit, self.identifier):
                 self.identifier = self.remove_checkdigit(self.identifier)
@@ -40,15 +38,17 @@ class IdentifierWithCheckdigit(Identifier, LuhnMixin):
         return '{}{}'.format(self.identifier_pattern[:-1], self.checkdigit_pattern[1:])
 
     def insert_separator(self, identifier, checkdigit=None):
+        """Returns the identifier with the separator inserted."""
         identifier = super().insert_separator(identifier)
         identifier = (self.separator or '').join([identifier, checkdigit] if checkdigit else [identifier])
         return identifier
 
     def remove_checkdigit(self, identifier_with_checkdigit):
-        """Returns a tuple of identifier, less the check digit, and the check digit.
+        """Returns the identifier, less the check digit.
 
-        If you specify identifier_pattern it will re.match the identifier or
-        raise an error."""
+        * If checkdigit_pattern is None, does nothing and just returns parameter `identifier_with_checkdigit`.
+        * Raises an exception if the patterns do not match or the checkdigit is invalid.
+        """
         identifier = None
         if self.checkdigit_pattern and identifier_with_checkdigit:
             try:

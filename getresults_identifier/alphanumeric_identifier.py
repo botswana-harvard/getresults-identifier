@@ -1,7 +1,7 @@
 import re
 
-from .exceptions import IdentifierError
 from .checkdigit_mixins import LuhnOrdMixin
+from .exceptions import IdentifierError
 from .numeric_identifier import NumericIdentifier
 
 
@@ -25,24 +25,6 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
         re.match(self.alpha_pattern, self.seed[0]).group()
         re.match(self.numeric_pattern, self.seed[1]).group()
 
-#     @property
-#     def identifier_pattern(self):
-#         return '{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:])
-
-#     def next_identifier(self):
-#         """Sets the identifier attr to the next identifier.
-# 
-#         Removes the checkdigit if it has one."""
-#         if re.match(self.identifier_pattern_with_checkdigit, self.identifier):
-#             self.identifier = self.remove_checkdigit(self.identifier)
-#         identifier = self.remove_separator(self.identifier)
-#         identifier = self.increment_alphanumeric(identifier)
-#         checkdigit = self.calculate_checkdigit(identifier)
-#         identifier = self.insert_separator(identifier, checkdigit)
-#         self.identifier = self.validate_identifier_pattern(
-#             identifier, pattern=self.identifier_pattern_with_checkdigit)
-#         self.update_history()
-
     @property
     def identifier_pattern_with_checkdigit(self):
         return '{}{}'.format(self.identifier_pattern[:-1], self.checkdigit_pattern[1:])
@@ -62,7 +44,7 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
         if int(numeric) < self.max_numeric(numeric):
             return alpha
         elif int(numeric) == self.max_numeric(numeric):
-            return self._increment_alpha(alpha)
+            return self.increment_alpha(alpha)
         else:
             raise IdentifierError('Unexpected numeric sequence. Got {}'.format(identifier))
 
@@ -81,7 +63,7 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
         segment = identifier[len(self.seed[0]):len(self.seed[0]) + len(self.seed[1])]
         return re.match(self.numeric_pattern, segment).group()
 
-    def _increment_alpha(self, text):
+    def increment_alpha(self, text):
         """Increments an alpha string."""
         letters = []
         letters[0:] = text.upper()

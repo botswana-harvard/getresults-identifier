@@ -39,7 +39,7 @@ class Identifier(object):
         return self.__next__()
 
     def next_identifier(self):
-        """Sets the identifier attr to the next identifier."""
+        """Sets the next identifier and updates the history."""
         identifier = self.remove_separator(self.identifier)
         identifier = self.increment(identifier)
         self.identifier = self.insert_separator(identifier)
@@ -60,12 +60,12 @@ class Identifier(object):
         return identifier
 
     def identifier_prefix(self):
+        """Returns the prefix extracted from the identifier using the prefix_pattern."""
         if not self.prefix_pattern:
             return None
         return re.match(self.prefix_pattern[:-1], self.identifier).group()
 
     def update_history(self):
-        """Updates the history model."""
         if self.history_model:
             self.history_model.objects.create(
                 identifier=self.identifier,
@@ -75,6 +75,7 @@ class Identifier(object):
 
     @property
     def last_identifier(self):
+        """Returns the last identifier in the history model."""
         try:
             instance = self.history_model.objects.filter(identifier_type=self.name).last()
             return instance.identifier
@@ -82,8 +83,9 @@ class Identifier(object):
             return None
 
     def remove_separator(self, identifier):
-        """Returns the identifier after removing the separator and saves the
-        items of the identifier as a list."""
+        """Returns the identifier after removing the separator.
+
+        The identifier is split into a list by separator and saved  as `identifier_as_list`."""
         if not identifier:
             return identifier
         else:
@@ -91,8 +93,7 @@ class Identifier(object):
             return ''.join(self.identifier_as_list)
 
     def insert_separator(self, identifier):
-        """Returns the identifier with the separator reinserted using the
-        list of identifier "items" from split_on_separator()."""
+        """Returns the identifier by reinserting the separator."""
         if not self.identifier_as_list:
             self.identifier_as_list = [identifier]
         start = 0

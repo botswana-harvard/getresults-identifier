@@ -3,11 +3,11 @@ from django.test.testcases import TestCase
 from .alphanumeric_identifier import AlphanumericIdentifier
 from .checkdigit_mixins import LuhnMixin, LuhnOrdMixin
 from .exceptions import IdentifierError, CheckDigitError
+from .identifier import Identifier
+from .identifier_with_checkdigit import IdentifierWithCheckdigit
 from .models import IdentifierHistory
 from .numeric_identifier import NumericIdentifier, NumericIdentifierWithModulus
 from .short_identifier import ShortIdentifier
-from .identifier import Identifier
-from .identifier_with_checkdigit import IdentifierWithCheckdigit
 
 
 class TestIdentifierError(Exception):
@@ -112,16 +112,16 @@ class TestIdentifier(TestCase):
 
     def test_short_identifier_duplicate(self):
         ntries = 0
+        min_tries = 1000
         max_tries = 10000
         while ntries <= max_tries:
             ntries += 1
             try:
                 DummyShortIdentifier()
             except TestIdentifierError as e:
-                print('Note, duplicate on {}th attempt. Got {}'.format(ntries, str(e)))
+                assert_msg = 'duplicate on {}th attempt. Got {}'.format(ntries, str(e))
                 break
-        if ntries >= max_tries:
-            print('No duplicate after {} tries'.format(ntries))
+        self.assertTrue(ntries < min_tries, assert_msg)
 
     def test_numeric_basic(self):
         NumericIdentifier.identifier_pattern = r'^[0-9]{8}$'
