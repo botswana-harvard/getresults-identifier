@@ -4,15 +4,26 @@ from .exceptions import IdentifierError
 from .models import IdentifierHistory
 
 
-class BaseIdentifier(object):
+class Identifier(object):
 
+    name = 'identifier'
     history_model = IdentifierHistory
-    identifier_pattern = None
+    identifier_pattern = '^\d+$'
+    prefix_pattern = None
+    seed = ['0']
     separator = None
 
-    def __init__(self):
-        self.identifier = None
+    def __init__(self, last_identifier=None):
         self.identifier_as_list = []
+        try:
+            seed = ''.join(self.seed)
+        except TypeError:
+            seed = self.seed
+        self.identifier = last_identifier or self.last_identifier or seed
+        self.identifier_pattern = (self.prefix_pattern or '^$')[:-1] + self.identifier_pattern[1:]
+        if self.identifier:
+            self.validate_identifier_pattern(self.identifier)
+        self.next_identifier()
 
     def __repr__(self):
         return '{0.__name__}(\'{1}\')'.format(self.__class__, self.identifier)
@@ -29,31 +40,46 @@ class BaseIdentifier(object):
 
     def next_identifier(self):
         """Sets the identifier attr to the next identifier."""
-        self.identifier = self.increment()
+        identifier = self.remove_separator(self.identifier)
+        identifier = self.increment(identifier)
+        self.identifier = self.insert_separator(identifier)
+        self.validate_identifier_pattern(self.identifier)
+        self.update_history()
 
-    def increment(self):
-        raise NotImplementedError()
+    def increment(self, identifier):
+        return str(int(identifier or 0) + 1)
 
     def validate_identifier_pattern(self, identifier, pattern=None, error_msg=None):
         pattern = pattern or self.identifier_pattern
-        error_msg = error_msg or 'Invalid identifier format for pattern {}. Got {}'.format(
-            pattern, identifier)
         try:
             identifier = re.match(pattern, identifier).group()
         except AttributeError:
+            error_msg = error_msg or 'Invalid identifier format for pattern {}. Got {}'.format(
+                pattern, identifier)
             raise IdentifierError(error_msg)
         return identifier
+
+    def identifier_prefix(self):
+        if not self.prefix_pattern:
+            return None
+        return re.match(self.prefix_pattern[:-1], self.identifier).group()
 
     def update_history(self):
         """Updates the history model."""
         if self.history_model:
-            try:
-                self.history_model.objects.create(
-                    identifier=self.identifier,
-                    identifier_type=self.identifier_type
-                )
-            except AttributeError:
-                pass
+            self.history_model.objects.create(
+                identifier=self.identifier,
+                identifier_type=self.name,
+                identifier_prefix=self.identifier_prefix,
+            )
+
+    @property
+    def last_identifier(self):
+        try:
+            instance = self.history_model.objects.filter(identifier_type=self.name).last()
+            return instance.identifier
+        except AttributeError:
+            return None
 
     def remove_separator(self, identifier):
         """Returns the identifier after removing the separator and saves the
@@ -64,7 +90,7 @@ class BaseIdentifier(object):
             self.identifier_as_list = identifier.split(self.separator)
             return ''.join(self.identifier_as_list)
 
-    def insert_separator(self, identifier, checkdigit=None):
+    def insert_separator(self, identifier):
         """Returns the identifier with the separator reinserted using the
         list of identifier "items" from split_on_separator()."""
         if not self.identifier_as_list:
@@ -74,7 +100,5 @@ class BaseIdentifier(object):
         for item in self.identifier_as_list:
             items.append(identifier[start:start + len(item)])
             start += len(item)
-        if checkdigit:
-            items.append(checkdigit)
         identifier = (self.separator or '').join(items)
         return identifier

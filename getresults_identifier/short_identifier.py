@@ -3,29 +3,27 @@ import re
 
 from getresults_identifier import IdentifierError
 
-from .base_identifier import BaseIdentifier
+from .checkdigit_mixins import LuhnOrdMixin
+from .identifier_with_checkdigit import IdentifierWithCheckdigit
 from .models import IdentifierHistory
-from getresults_identifier.checkdigit_mixins import LuhnOrdMixin
 
 
-class ShortIdentifier(LuhnOrdMixin, BaseIdentifier):
+class ShortIdentifier(LuhnOrdMixin, IdentifierWithCheckdigit):
 
-    identifier_type = 'short'
-    template = '{prefix}{random_string}'
-    prefix_pattern = None
-    checkdigit_pattern = None
-    random_string_pattern = r'^[A-Z0-9]{5}$'
     allowed_chars = 'ABCDEFGHKMNPRTUVWXYZ2346789'
+    checkdigit_pattern = None
     history_model = IdentifierHistory
+    identifier_pattern = r'^[A-Z0-9]{5}$'
+    identifier_type = 'short'
+    prefix_pattern = None
+    random_string_pattern = r'^[A-Z0-9]{5}$'
+    seed = None
+    template = '{prefix}{random_string}'
 
-    def __init__(self, last_identifier=None, options=None):
-        super(ShortIdentifier, self).__init__()
-        self.identifier_pattern = (self.prefix_pattern or '^$')[:-1] + self.random_string_pattern[1:]
-        self._options = options or {}
+    def __init__(self, options=None):
         self.duplicate_counter = 0
-        self.last_identifier = last_identifier or None
-        self.identifier = last_identifier or None  # only used to update options
-        self.next_identifier()
+        self._options = options or {}
+        super(ShortIdentifier, self).__init__()
 
     @property
     def options(self):

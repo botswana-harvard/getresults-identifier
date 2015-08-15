@@ -1,11 +1,13 @@
 from django.test.testcases import TestCase
 
 from .alphanumeric_identifier import AlphanumericIdentifier
-from .checkdigit_mixins import LuhnMixin, LuhnOrdMixin, BaseCheckDigitMixin
+from .checkdigit_mixins import LuhnMixin, LuhnOrdMixin
 from .exceptions import IdentifierError, CheckDigitError
 from .models import IdentifierHistory
 from .numeric_identifier import NumericIdentifier, NumericIdentifierWithModulus
 from .short_identifier import ShortIdentifier
+from .identifier import Identifier
+from .identifier_with_checkdigit import IdentifierWithCheckdigit
 
 
 class TestIdentifierError(Exception):
@@ -15,7 +17,7 @@ class TestIdentifierError(Exception):
 class DummyShortIdentifier(ShortIdentifier):
 
     history = []
-    identifier_pattern = '\w+'
+    identifier_pattern = '^\w+$'
 
     def update_history(self):
         if self.identifier in self.history:
@@ -35,6 +37,41 @@ class DummyAlphaIdentifierWithCheckDigit(ShortIdentifier):
 
 class TestIdentifier(TestCase):
 
+    def test_valid_checkdigit(self):
+        mixin = LuhnMixin()
+        checkdigit = mixin.calculate_checkdigit('98765')
+        self.assertTrue(mixin.is_valid_checkdigit('98765', checkdigit))
+        checkdigit = mixin.calculate_checkdigit('98766')
+        self.assertTrue(mixin.is_valid_checkdigit('98766', checkdigit))
+        checkdigit = mixin.calculate_checkdigit('98767')
+        self.assertTrue(mixin.is_valid_checkdigit('98767', checkdigit))
+
+    def test_luhn_mixin(self):
+        mixin = LuhnMixin()
+        self.assertEqual('1', mixin.calculate_checkdigit('98765'))
+        self.assertEqual('9', mixin.calculate_checkdigit('98766'))
+        self.assertEqual('7', mixin.calculate_checkdigit('98767'))
+
+    def test_luhn_ord_mixin(self):
+        mixin = LuhnOrdMixin()
+        self.assertEqual('4', mixin.calculate_checkdigit('ABCDE'))
+        self.assertEqual('8', mixin.calculate_checkdigit('ABCDEF'))
+        self.assertEqual('0', mixin.calculate_checkdigit('ABCDEFG'))
+
+    def test_identifier(self):
+        instance = Identifier()
+        self.assertEqual('1', instance.identifier)
+        instance = Identifier()
+        self.assertEqual('2', instance.identifier)
+
+    def test_identifier_with_checkdigit(self):
+        instance = IdentifierWithCheckdigit()
+        self.assertEqual('18', instance.identifier)
+        instance = IdentifierWithCheckdigit()
+        self.assertEqual('26', instance.identifier)
+        instance = IdentifierWithCheckdigit()
+        self.assertEqual('34', instance.identifier)
+
     def test_short_identifier(self):
         ShortIdentifier.prefix_pattern = '^[0-9]{2}$'
         short_identifier = ShortIdentifier(options=dict(prefix=22))
@@ -52,13 +89,16 @@ class TestIdentifier(TestCase):
         ShortIdentifier.prefix_pattern = None
 
     def test_short_identifier_with_last(self):
-        last_identifier = '22KVTB4'
         ShortIdentifier.prefix_pattern = '^[0-9]{2}$'
         ShortIdentifier.checkdigit_pattern = None
-        short_identifier = ShortIdentifier(last_identifier=last_identifier)
+        ShortIdentifier.history_model.objects.create(
+            identifier='22KVTB4',
+            identifier_type=ShortIdentifier.identifier_type,
+            identifier_prefix='22')
+        short_identifier = ShortIdentifier(options={'prefix': 22})
         expected_identifier = '{}{}'.format('22', short_identifier.options.get('random_string'))
         self.assertEqual(short_identifier.identifier, expected_identifier)
-        self.assertNotEqual(short_identifier.identifier, last_identifier)
+        self.assertNotEqual(short_identifier.identifier, '22KVTB4')
         self.assertIsInstance(
             IdentifierHistory.objects.get(identifier=expected_identifier),
             IdentifierHistory
@@ -94,6 +134,41 @@ class TestIdentifier(TestCase):
         self.assertEqual(numeric_identifier.identifier, '100000033')
         numeric_identifier.next_identifier()
         self.assertEqual(numeric_identifier.identifier, '100000041')
+
+    def test_numeric_without_checkdigit(self):
+        NumericIdentifier.identifier_pattern = r'^[0-9]{8}$'
+        NumericIdentifier.seed = ('10000000')
+        NumericIdentifier.checkdigit_pattern = None
+        numeric_identifier = NumericIdentifier(None)
+        self.assertEqual(numeric_identifier.identifier, '10000001')
+        numeric_identifier.next_identifier()
+        self.assertEqual(numeric_identifier.identifier, '10000002')
+        numeric_identifier.next_identifier()
+        self.assertEqual(numeric_identifier.identifier, '10000003')
+        numeric_identifier.next_identifier()
+        self.assertEqual(numeric_identifier.identifier, '10000004')
+
+    def test_numeric_without_checkdigit_last(self):
+        NumericIdentifier.identifier_pattern = r'^[0-9]{8}$'
+        NumericIdentifier.seed = ('10000000')
+        NumericIdentifier.checkdigit_pattern = None
+        numeric_identifier = NumericIdentifier(last_identifier='10000004')
+        self.assertEqual(numeric_identifier.identifier, '10000005')
+
+    def test_numeric_without_checkdigit_history(self):
+        NumericIdentifier.identifier_pattern = r'^[0-9]{8}$'
+        NumericIdentifier.seed = ('10000000')
+        NumericIdentifier.checkdigit_pattern = None
+        numeric_identifier = NumericIdentifier(None)
+        self.assertEqual(numeric_identifier.identifier, '10000001')
+        numeric_identifier.next_identifier()
+        self.assertEqual(numeric_identifier.identifier, '10000002')
+        numeric_identifier.next_identifier()
+        self.assertEqual(numeric_identifier.identifier, '10000003')
+        numeric_identifier.next_identifier()
+        self.assertEqual(numeric_identifier.identifier, '10000004')
+        numeric_identifier = NumericIdentifier()
+        self.assertEqual(numeric_identifier.identifier, '10000005')
 
     def test_numeric_pattern(self):
         NumericIdentifier.identifier_pattern = r'^[0-9]{10}\-[0-9]{1}$'
@@ -149,14 +224,13 @@ class TestIdentifier(TestCase):
 
     def test_split_checkdigit_one(self):
         """Asserts can split identifier with checkdigit into identifier, checkdigit."""
-        class DummyIdentifierWithCheckDigit(BaseCheckDigitMixin):
-
+        class DummyIdentifierWithCheckdigit(IdentifierWithCheckdigit):
             def calculate_checkdigit(self, identifier):
-                return '4'
+                return '1'
 
-        mixin = DummyIdentifierWithCheckDigit()
-        identifier_with_checkdigit = '987654'
-        identifier = mixin.remove_checkdigit(identifier_with_checkdigit)
+        identifier_with_checkdigit = '987651'
+        instance = IdentifierWithCheckdigit()
+        identifier = instance.remove_checkdigit(identifier_with_checkdigit)
         checkdigit = identifier_with_checkdigit.replace(identifier, '')
         self.assertEqual(identifier, identifier_with_checkdigit[:-1])
         self.assertEqual(checkdigit, identifier_with_checkdigit[-1:])
@@ -165,16 +239,15 @@ class TestIdentifier(TestCase):
         """Asserts can split identifier with checkdigit into identifier, checkdigit.
 
         Tries with a different the checkdigit_pattern"""
-        class DummyIdentifierWithCheckDigit(BaseCheckDigitMixin):
-
+        class DummyIdentifierWithCheckdigit(IdentifierWithCheckdigit):
             checkdigit_pattern = r'^[0-9]{2}$'
 
             def calculate_checkdigit(self, identifier):
-                return '54'
+                return '51'
 
-        mixin = DummyIdentifierWithCheckDigit()
-        identifier_with_checkdigit = '987654'
-        identifier = mixin.remove_checkdigit(identifier_with_checkdigit)
+        instance = DummyIdentifierWithCheckdigit()
+        identifier_with_checkdigit = '987651'
+        identifier = instance.remove_checkdigit(identifier_with_checkdigit)
         checkdigit = identifier_with_checkdigit.replace(identifier, '')
         self.assertEqual(identifier, identifier_with_checkdigit[:-2])
         self.assertEqual(checkdigit, identifier_with_checkdigit[-2:])
@@ -183,16 +256,16 @@ class TestIdentifier(TestCase):
         """Asserts raises an exception if cannot split based on the pattern and identifier.
 
         Note, checkdigit_pattern does not match"""
-        class DummyIdentifierWithCheckDigit(BaseCheckDigitMixin):
+        class DummyIdentifierWithCheckDigit(IdentifierWithCheckdigit):
 
             checkdigit_pattern = r'^[0-9]{2}$'
 
             def calculate_checkdigit(self, identifier):
                 return '54'
 
-        mixin = DummyIdentifierWithCheckDigit()
+        instance = DummyIdentifierWithCheckDigit()
         identifier_with_checkdigit = '98765-4'
-        self.assertRaises(CheckDigitError, mixin.remove_checkdigit, identifier_with_checkdigit)
+        self.assertRaises(CheckDigitError, instance.remove_checkdigit, identifier_with_checkdigit)
 
     def test_checkdigit(self):
         identifier = 'AAA00007'

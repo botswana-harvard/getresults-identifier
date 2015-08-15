@@ -3,8 +3,6 @@ import re
 from .exceptions import IdentifierError
 from .checkdigit_mixins import LuhnOrdMixin
 from .numeric_identifier import NumericIdentifier
-from getresults_identifier.exceptions import CheckDigitError
-from .base_identifier import BaseIdentifier
 
 
 class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
@@ -15,6 +13,7 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
     separator = None
 
     def __init__(self, last_identifier=None):
+        self.identifier_pattern = '{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:])
         self.verify_seed()
         super(AlphanumericIdentifier, self).__init__(last_identifier)
 
@@ -26,29 +25,29 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
         re.match(self.alpha_pattern, self.seed[0]).group()
         re.match(self.numeric_pattern, self.seed[1]).group()
 
-    @property
-    def identifier_pattern(self):
-        return '{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:])
+#     @property
+#     def identifier_pattern(self):
+#         return '{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:])
 
-    def next_identifier(self):
-        """Sets the identifier attr to the next identifier.
-
-        Removes the checkdigit if it has one."""
-        if re.match(self.identifier_pattern_with_checkdigit, self.identifier):
-            self.identifier = self.remove_checkdigit(self.identifier)
-        identifier = self.remove_separator(self.identifier)
-        identifier = self.increment_alphanumeric(identifier)
-        checkdigit = self.calculate_checkdigit(identifier)
-        identifier = self.insert_separator(identifier, checkdigit)
-        self.identifier = self.validate_identifier_pattern(
-            identifier, pattern=self.identifier_pattern_with_checkdigit)
-        self.update_history()
+#     def next_identifier(self):
+#         """Sets the identifier attr to the next identifier.
+# 
+#         Removes the checkdigit if it has one."""
+#         if re.match(self.identifier_pattern_with_checkdigit, self.identifier):
+#             self.identifier = self.remove_checkdigit(self.identifier)
+#         identifier = self.remove_separator(self.identifier)
+#         identifier = self.increment_alphanumeric(identifier)
+#         checkdigit = self.calculate_checkdigit(identifier)
+#         identifier = self.insert_separator(identifier, checkdigit)
+#         self.identifier = self.validate_identifier_pattern(
+#             identifier, pattern=self.identifier_pattern_with_checkdigit)
+#         self.update_history()
 
     @property
     def identifier_pattern_with_checkdigit(self):
         return '{}{}'.format(self.identifier_pattern[:-1], self.checkdigit_pattern[1:])
 
-    def increment_alphanumeric(self, identifier):
+    def increment(self, identifier):
         """Returns the incremented identifier."""
         identifier = '{}{}'.format(
             self.increment_alpha_segment(identifier),
@@ -70,7 +69,7 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
     def increment_numeric_segment(self, identifier):
         """Increments the numeric segment of the identifier."""
         numeric = self.numeric_segment(identifier)
-        return self.increment(numeric)
+        return super().increment(numeric)
 
     def alpha_segment(self, identifier):
         """Returns the alpha segment of the identifier."""
