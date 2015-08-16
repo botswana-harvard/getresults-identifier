@@ -12,7 +12,7 @@ class IdentifierWithCheckdigit(Identifier, LuhnMixin):
     def __init__(self, last_identifier=None):
         if self.checkdigit_pattern:
             last_identifier = self.remove_checkdigit(last_identifier or self.last_identifier)
-        super().__init__(last_identifier)
+        super(IdentifierWithCheckdigit, self).__init__(last_identifier)
 
     def next_identifier(self):
         """Sets the next identifier and updates history."""
