@@ -12,7 +12,8 @@ class BatchIdentifier(Identifier):
     prefix_pattern = r'^[0-9]{8}$'
     seed = ['0000']
 
-    def __init__(self, last_identifier=None, prefix=None):
+    def __init__(self, prefix=None):
+        last_identifier = self.last_identifier
         if not last_identifier:
             prefix = prefix or datetime.today().strftime('%Y%m%d')
             last_identifier = '{}{}'.format(prefix, ''.join(self.seed))
