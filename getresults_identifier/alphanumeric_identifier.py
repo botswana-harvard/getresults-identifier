@@ -51,7 +51,7 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
     def increment_numeric_segment(self, identifier):
         """Increments the numeric segment of the identifier."""
         numeric = self.numeric_segment(identifier)
-        return super().increment(numeric)
+        return super(AlphanumericIdentifier, self).increment(numeric)
 
     def alpha_segment(self, identifier):
         """Returns the alpha segment of the identifier."""
