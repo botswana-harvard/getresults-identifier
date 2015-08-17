@@ -1,5 +1,3 @@
-import re
-
 from .identifier_with_checkdigit import IdentifierWithCheckdigit
 from .exceptions import IdentifierError
 from .checkdigit_mixins import ModulusMixin
@@ -8,6 +6,7 @@ from .checkdigit_mixins import ModulusMixin
 class NumericIdentifier(IdentifierWithCheckdigit):
     """Class for numeric identifier with check digit."""
 
+    name = 'numericidentifier'
     identifier_pattern = r'^[0-9]{10}$'
     checkdigit_pattern = r'^[0-9]{1}$'
     separator = None

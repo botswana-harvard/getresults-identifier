@@ -75,7 +75,7 @@ class TestIdentifier(TestCase):
         ShortIdentifier.checkdigit_pattern = None
         ShortIdentifier.history_model.objects.create(
             identifier='22KVTB4',
-            identifier_type=ShortIdentifier.identifier_type,
+            identifier_type=ShortIdentifier.name,
             identifier_prefix='22')
         short_identifier = ShortIdentifier(options={'prefix': 22})
         expected_identifier = '{}{}'.format('22', short_identifier.options.get('random_string'))

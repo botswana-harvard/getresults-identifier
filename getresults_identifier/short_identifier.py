@@ -10,11 +10,11 @@ from .models import IdentifierHistory
 
 class ShortIdentifier(LuhnOrdMixin, IdentifierWithCheckdigit):
 
+    name = 'shortidentifier'
     allowed_chars = 'ABCDEFGHKMNPRTUVWXYZ2346789'
     checkdigit_pattern = None
     history_model = IdentifierHistory
     identifier_pattern = r'^[A-Z0-9]{5}$'
-    identifier_type = 'short'
     prefix_pattern = None
     random_string_pattern = r'^[A-Z0-9]{5}$'
     seed = None

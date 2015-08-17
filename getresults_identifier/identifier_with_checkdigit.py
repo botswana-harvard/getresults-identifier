@@ -7,6 +7,7 @@ from .identifier import Identifier
 
 class IdentifierWithCheckdigit(Identifier, LuhnMixin):
 
+    name = 'identifierwithcheckdigit'
     checkdigit_pattern = r'^[0-9]{1}$'
 
     def __init__(self, last_identifier=None):

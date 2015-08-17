@@ -3,7 +3,7 @@ from .short_identifier import ShortIdentifier
 
 class RequisitionIdentifier(ShortIdentifier):
 
-    identifier_type = 'requisition'
+    name = 'requisitionidentifier'
     requisition_model = None
 
     def is_duplicate(self, identifier):

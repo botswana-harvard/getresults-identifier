@@ -7,6 +7,7 @@ from .numeric_identifier import NumericIdentifier
 
 class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
 
+    name = 'alphanumericidentifier'
     alpha_pattern = r'^[A-Z]{3}$'
     numeric_pattern = r'^[0-9]{4}$'
     seed = ['AAA', '0000']

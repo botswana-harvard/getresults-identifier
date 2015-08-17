@@ -77,7 +77,9 @@ class Identifier(object):
     def last_identifier(self):
         """Returns the last identifier in the history model."""
         try:
-            instance = self.history_model.objects.filter(identifier_type=self.name).last()
+            instance = self.history_model.objects.filter(
+                identifier_type=self.name
+            ).last()
             return instance.identifier
         except AttributeError:
             return None
