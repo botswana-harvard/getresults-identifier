@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.test.testcases import TestCase
 
 from .alphanumeric_identifier import AlphanumericIdentifier
@@ -8,6 +10,7 @@ from .identifier_with_checkdigit import IdentifierWithCheckdigit
 from .models import IdentifierHistory
 from .numeric_identifier import NumericIdentifier, NumericIdentifierWithModulus
 from .short_identifier import ShortIdentifier
+from getresults_identifier.batch_identifier import BatchIdentifier
 
 
 class TestIdentifierError(Exception):
@@ -300,3 +303,22 @@ class TestIdentifier(TestCase):
             else:
                 self.assertEqual('AAA', identifier[0:3],
                                  'Expected AAA for {}nth iteration. Got {}'.format(n, identifier))
+
+    def test_batch_identifier(self):
+        date_prefix = datetime.today().strftime('%Y%m%d')
+        batch_identifier = BatchIdentifier()
+        self.assertTrue(batch_identifier.identifier.startswith(date_prefix))
+        self.assertTrue(batch_identifier.identifier.endswith('0001'))
+        next(batch_identifier)
+        self.assertTrue(batch_identifier.identifier.startswith(date_prefix))
+        self.assertTrue(batch_identifier.identifier.endswith('0002'))
+        next(batch_identifier)
+        self.assertTrue(batch_identifier.identifier.startswith(date_prefix))
+        self.assertTrue(batch_identifier.identifier.endswith('0003'))
+
+    def test_batch_identifier_last(self):
+        date_prefix = datetime.today().strftime('%Y%m%d')
+        batch_identifier = BatchIdentifier(date_prefix + '9998')
+        self.assertTrue(batch_identifier.identifier.startswith(date_prefix))
+        self.assertTrue(batch_identifier.identifier.endswith('9999'))
+        next(batch_identifier)
