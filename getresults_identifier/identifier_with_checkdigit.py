@@ -39,7 +39,7 @@ class IdentifierWithCheckdigit(Identifier, LuhnMixin):
 
     def insert_separator(self, identifier, checkdigit=None):
         """Returns the identifier with the separator inserted."""
-        identifier = super().insert_separator(identifier)
+        identifier = super(IdentifierWithCheckdigit, self).insert_separator(identifier)
         identifier = (self.separator or '').join([identifier, checkdigit] if checkdigit else [identifier])
         return identifier
 
