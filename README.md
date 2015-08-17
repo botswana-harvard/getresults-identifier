@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/botswana-harvard/getresults-identifier.svg?branch=develop)](https://travis-ci.org/botswana-harvard/getresults-identifier)
+
 # getresults-identifier
 
 Base classes for identifiers.
@@ -183,3 +185,23 @@ Add more to the prefix, such as device code and community code.
 
 		def update_history(self):
 			pass
+
+			
+Batch Identifier
+----------------
+
+To have an identifier prefixed by the current date stamp:
+
+	from getresults_identifier.batch_identifier import BatchIdentifier	
+
+	>>> datetime.today().strftime('%Y%m%d)
+	20150817
+	>>> id = BatchIdentifier()
+	>>> id
+	BatchIdentifier('201508170001')
+	>>> next(id)
+	'201508170002'
+
+	
+	
+	
