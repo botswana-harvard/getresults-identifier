@@ -22,10 +22,6 @@ setup(
     long_description=README,
     zip_safe=False,
     keywords='django getresults lis lims identifier',
-    install_requires=[
-        'Django>=1.8',
-        'unipath>=1.1',
-    ],
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',

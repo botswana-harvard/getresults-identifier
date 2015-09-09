@@ -59,6 +59,7 @@ class Identifier(object):
             raise IdentifierError(error_msg)
         return identifier
 
+    @property
     def identifier_prefix(self):
         """Returns the prefix extracted from the identifier using the prefix_pattern."""
         if not self.prefix_pattern:
