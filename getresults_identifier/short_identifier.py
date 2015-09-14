@@ -1,9 +1,8 @@
 import random
 import re
 
-from getresults_identifier import IdentifierError
-
 from .checkdigit_mixins import LuhnOrdMixin
+from .exceptions import IdentifierError
 from .identifier_with_checkdigit import IdentifierWithCheckdigit
 from .models import IdentifierHistory
 

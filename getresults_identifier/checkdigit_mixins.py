@@ -1,4 +1,4 @@
-from getresults_identifier.exceptions import CheckDigitError
+from .exceptions import CheckDigitError
 
 
 class BaseCheckDigitMixin(object):
