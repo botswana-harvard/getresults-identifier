@@ -4,6 +4,7 @@ from django.test.testcases import TestCase
 
 from .alphanumeric_identifier import AlphanumericIdentifier
 from .batch_identifier import BatchIdentifier
+from .result_identifier import ResultIdentifier
 from .checkdigit_mixins import LuhnMixin, LuhnOrdMixin
 from .exceptions import IdentifierError, CheckDigitError
 from .identifier import Identifier
@@ -11,6 +12,7 @@ from .identifier_with_checkdigit import IdentifierWithCheckdigit
 from .models import IdentifierHistory
 from .numeric_identifier import NumericIdentifier, NumericIdentifierWithModulus
 from .short_identifier import ShortIdentifier
+from getresults_identifier.order_identifier import OrderIdentifier
 
 
 class TestIdentifierError(Exception):
@@ -304,6 +306,13 @@ class TestIdentifier(TestCase):
                 self.assertEqual('AAA', identifier[0:3],
                                  'Expected AAA for {}nth iteration. Got {}'.format(n, identifier))
 
+    def test_alphanumeric_with_prefix(self):
+        AlphanumericIdentifier.alpha_pattern = r'^[A-Z]{3}$'
+        AlphanumericIdentifier.numeric_pattern = r'^[0-9]{4}$'
+        AlphanumericIdentifier.seed = ['AAA', '0000']
+        instance = AlphanumericIdentifier(options=dict(prefix='ERIK'))
+        self.assertTrue(instance.identifier.startswith('ERIK'))
+
     def test_batch_identifier(self):
         date_prefix = datetime.today().strftime('%Y%m%d')
         batch_identifier = BatchIdentifier()
@@ -322,3 +331,13 @@ class TestIdentifier(TestCase):
         self.assertTrue(batch_identifier.identifier.startswith(date_prefix))
         self.assertTrue(batch_identifier.identifier.endswith('9999'))
         next(batch_identifier)
+
+    def test_result_identifier_last(self):
+        result_identifier = ResultIdentifier(prefix='ABC12345')
+        self.assertTrue(result_identifier, "ABC12345001")
+        next(result_identifier)
+        self.assertTrue(result_identifier, "ABC12345002")
+        next(result_identifier)
+        self.assertTrue(result_identifier, "ABC12345003")
+        result_identifier = ResultIdentifier(prefix='ABC12345')
+        self.assertTrue(result_identifier, "ABC12345004")

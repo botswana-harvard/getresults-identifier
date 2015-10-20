@@ -40,11 +40,13 @@ class Identifier(object):
 
     def next_identifier(self):
         """Sets the next identifier and updates the history."""
-        identifier = self.remove_separator(self.identifier)
-        identifier = self.increment(identifier)
-        self.identifier = self.insert_separator(identifier)
-        self.validate_identifier_pattern(self.identifier)
-        self.update_history()
+        while True:
+            identifier = self.remove_separator(self.identifier)
+            identifier = self.increment(identifier)
+            self.identifier = self.insert_separator(identifier)
+            self.validate_identifier_pattern(self.identifier)
+            if self.update_history():
+                break
 
     def increment(self, identifier):
         return str(int(identifier or 0) + 1)
@@ -67,12 +69,18 @@ class Identifier(object):
         return re.match(self.prefix_pattern[:-1], self.identifier).group()
 
     def update_history(self):
+        """Attempts to update history and returns True (or instance) if successful else False if
+        identifier already exists."""
         if self.history_model:
-            self.history_model.objects.create(
-                identifier=self.identifier,
-                identifier_type=self.name,
-                identifier_prefix=self.identifier_prefix,
-            )
+            try:
+                self.history_model.objects.get(identifier=self.identifier)
+                return False
+            except self.history_model.DoesNotExist:
+                return self.history_model.objects.create(
+                    identifier=self.identifier,
+                    identifier_type=self.name,
+                    identifier_prefix=self.identifier_prefix)
+        return True
 
     @property
     def last_identifier(self):
