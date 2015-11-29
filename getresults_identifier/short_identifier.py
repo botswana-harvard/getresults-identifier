@@ -22,13 +22,19 @@ class ShortIdentifier(LuhnOrdMixin, IdentifierWithCheckdigit):
     def __init__(self, options=None):
         self.duplicate_counter = 0
         self._options = options or {}
-        super(ShortIdentifier, self).__init__()
+        try:
+            self.prefix = self._options['prefix']
+        except KeyError:
+            pass
+        self.identifier = self.next_on_duplicate(None)
+        super(ShortIdentifier, self).__init__(self.identifier, prefix=self.prefix)
 
     @property
     def options(self):
         if 'prefix' not in self._options:
             try:
-                self._options.update({'prefix': re.match(self.prefix_pattern[:-1], self.last_identifier).group()})
+                self.prefix = re.match(self.prefix_pattern[:-1], self.last_identifier).group()
+                self._options.update({'prefix': self.prefix})
             except TypeError:
                 self._options.update({'prefix': ''})
         return self._options

@@ -12,7 +12,6 @@ from .identifier_with_checkdigit import IdentifierWithCheckdigit
 from .models import IdentifierHistory
 from .numeric_identifier import NumericIdentifier, NumericIdentifierWithModulus
 from .short_identifier import ShortIdentifier
-from getresults_identifier.order_identifier import OrderIdentifier
 
 
 class TestIdentifierError(Exception):
@@ -310,7 +309,7 @@ class TestIdentifier(TestCase):
         AlphanumericIdentifier.alpha_pattern = r'^[A-Z]{3}$'
         AlphanumericIdentifier.numeric_pattern = r'^[0-9]{4}$'
         AlphanumericIdentifier.seed = ['AAA', '0000']
-        instance = AlphanumericIdentifier(options=dict(prefix='ERIK'))
+        instance = AlphanumericIdentifier(prefix='ERIK')
         self.assertTrue(instance.identifier.startswith('ERIK'))
 
     def test_batch_identifier(self):
@@ -330,7 +329,8 @@ class TestIdentifier(TestCase):
         batch_identifier = BatchIdentifier(date_prefix + '9998')
         self.assertTrue(batch_identifier.identifier.startswith(date_prefix))
         self.assertTrue(batch_identifier.identifier.endswith('9999'))
-        next(batch_identifier)
+        # raise an error since next suffix would be 0000
+        self.assertRaises(IdentifierError, next, batch_identifier)
 
     def test_result_identifier_last(self):
         result_identifier = ResultIdentifier(prefix='ABC12345')

@@ -10,10 +10,10 @@ class IdentifierWithCheckdigit(Identifier, LuhnMixin):
     name = 'identifierwithcheckdigit'
     checkdigit_pattern = r'^[0-9]{1}$'
 
-    def __init__(self, last_identifier=None):
+    def __init__(self, last_identifier=None, **kwargs):
         if self.checkdigit_pattern:
             last_identifier = self.remove_checkdigit(last_identifier or self.last_identifier)
-        super(IdentifierWithCheckdigit, self).__init__(last_identifier)
+        super(IdentifierWithCheckdigit, self).__init__(last_identifier, **kwargs)
 
     def next_identifier(self):
         """Sets the next identifier and updates history."""

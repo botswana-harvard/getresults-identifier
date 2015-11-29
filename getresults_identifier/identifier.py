@@ -10,17 +10,20 @@ class Identifier(object):
     history_model = IdentifierHistory
     identifier_pattern = '^\d+$'
     prefix_pattern = None
+    prefix = None
     seed = ['0']
     separator = None
 
-    def __init__(self, last_identifier=None):
+    def __init__(self, last_identifier=None, prefix=None):
         self.identifier_as_list = []
+        self.prefix = prefix or self.prefix or ''
         try:
             seed = ''.join(self.seed)
         except TypeError:
             seed = self.seed
-        self.identifier = last_identifier or self.last_identifier or seed
-        self.identifier_pattern = (self.prefix_pattern or '^$')[:-1] + self.identifier_pattern[1:]
+        self.identifier = last_identifier or self.last_identifier or '{}{}'.format(self.prefix, seed)
+        self.prefix_pattern = r'^{}$'.format(self.prefix)
+        self.identifier_pattern = self.prefix_pattern[:-1] + self.identifier_pattern[1:]
         if self.identifier:
             self.validate_identifier_pattern(self.identifier)
         self.next_identifier()

@@ -13,10 +13,10 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
     seed = ['AAA', '0000']
     separator = None
 
-    def __init__(self, last_identifier=None):
+    def __init__(self, last_identifier=None, prefix=None):
         self.identifier_pattern = '{}{}'.format(self.alpha_pattern[:-1], self.numeric_pattern[1:])
         self.verify_seed()
-        super(AlphanumericIdentifier, self).__init__(last_identifier)
+        super(AlphanumericIdentifier, self).__init__(last_identifier, prefix=prefix)
 
     def verify_seed(self):
         """Verifies the class attribute "seed" matches the regular expressions
@@ -32,7 +32,8 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
 
     def increment(self, identifier):
         """Returns the incremented identifier."""
-        identifier = '{}{}'.format(
+        identifier = '{}{}{}'.format(
+            self.prefix,
             self.increment_alpha_segment(identifier),
             self.increment_numeric_segment(identifier)
         )
@@ -56,12 +57,13 @@ class AlphanumericIdentifier(LuhnOrdMixin, NumericIdentifier):
 
     def alpha_segment(self, identifier):
         """Returns the alpha segment of the identifier."""
-        segment = identifier[0:len(self.seed[0])]
+        segment = identifier[len(self.prefix):len(self.prefix) + len(self.seed[0])]
         return re.match(self.alpha_pattern, segment).group()
 
     def numeric_segment(self, identifier):
         """Returns the numeric segment of the partial identifier."""
-        segment = identifier[len(self.seed[0]):len(self.seed[0]) + len(self.seed[1])]
+        segment = identifier[
+            len(self.prefix or '') + len(self.seed[0]):len(self.prefix or '') + len(self.seed[0]) + len(self.seed[1])]
         return re.match(self.numeric_pattern, segment).group()
 
     def increment_alpha(self, text):
