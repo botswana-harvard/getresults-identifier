@@ -1,4 +1,4 @@
-from .short_identifier import ShortIdentifier
+from edc_identifier import ShortIdentifier
 
 
 class RequisitionIdentifier(ShortIdentifier):

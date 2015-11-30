@@ -1,4 +1,4 @@
-from .identifier import Identifier
+from edc_identifier import Identifier
 
 
 class ResultIdentifier(Identifier):
