@@ -1,4 +1,4 @@
-from edc_identifier import AlphanumericIdentifier
+from edc_identifier.alphanumeric_identifier import AlphanumericIdentifier
 
 
 class OrderIdentifier(AlphanumericIdentifier):
